@@ -1,8 +1,22 @@
-# orangepi-gpio
-orangepi.gpio action
-````azure
-   //Export 导出指定的 GPIO 引脚
-     Export() error
+/**
+ * @Title
+ * @Author: liwei
+ * @Description:  TODO
+ * @File:  gpio_fac
+ * @Version: 1.0.0
+ * @Date: 2025/02/18 09:12
+ * @Update liwei 2025/2/18 09:12
+ */
+
+package gpio
+
+type GpioFactory interface {
+	MakeGpio() IsGpio
+}
+
+type IsGpio interface {
+	//Export 导出指定的 GPIO 引脚
+	Export() error
 
 	//Unexport 取消导出指定的 GPIO 引脚
 	Unexport(pin int) error
@@ -20,5 +34,4 @@ orangepi.gpio action
 	SetLow() error
 
 	Cleanup(pins []int)
-
-````
+}
