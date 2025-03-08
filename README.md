@@ -22,3 +22,16 @@ orangepi.gpio action
 	Cleanup(pins []int)
 
 ````
+
+### DEMO
+
+```azure
+func main(){
+    pin := 123
+	gpioRes := gpio.NewGpio(pin)
+    if err := gpioRes.MakeGpio().SetHigh(); err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("gpio set high success")
+}
+```

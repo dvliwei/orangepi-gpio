@@ -119,3 +119,36 @@ func (res *gpioRes) Cleanup(pins []int) {
 		}
 	}
 }
+
+func (res *gpioRes) Read(pin int) (int, error) {
+	filePath := fmt.Sprintf("/sys/class/gpio/gpio%d/value", pin)
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read value from GPIO pin %d: %w", pin, err)
+	}
+	value, err := strconv.Atoi(string(data[:1]))
+	if err != nil {
+		return 0, fmt.Errorf("failed to convert value from GPIO pin %d: %w", pin, err)
+	}
+	return value, nil
+}
+
+func (res *gpioRes) SetMode(pin int, mode string) error {
+	filePath := fmt.Sprintf("/sys/class/gpio/gpio%d/active_low", pin)
+	// 这里只是示例，不同系统对模式设置的文件和值可能不同
+	// 实际中可能需要根据具体硬件和系统修改
+	var value string
+	switch mode {
+	case "UP":
+		value = "0"
+	case "DOWN":
+		value = "1"
+	default:
+		return fmt.Errorf("unsupported GPIO mode: %s", mode)
+	}
+	err := ioutil.WriteFile(filePath, []byte(value), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to set mode for GPIO pin %d: %w", pin, err)
+	}
+	return nil
+}

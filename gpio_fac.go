@@ -34,4 +34,8 @@ type IsGpio interface {
 	SetLow() error
 
 	Cleanup(pins []int)
+
+	Read(pin int) (int, error)
+
+	SetMode(pin int, mode string) error
 }
