@@ -13,6 +13,7 @@ package gpio
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -29,15 +30,19 @@ func newGpioRes(pin *Gpio) *gpioRes {
 }
 
 func (res *gpioRes) Export() error {
-	pinStr := strconv.Itoa(res.pin)
-	err := ioutil.WriteFile("/sys/class/gpio/export", []byte(pinStr), 0644)
-	if err != nil {
-		if strings.Contains(err.Error(), "Device or resource busy") {
-			// 引脚已经导出，忽略错误
-			return nil
+	filePath := fmt.Sprintf("/sys/class/gpio/gpio%d/value", res.pin)
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		pinStr := strconv.Itoa(res.pin)
+		err := ioutil.WriteFile("/sys/class/gpio/export", []byte(pinStr), 0644)
+		if err != nil {
+			if strings.Contains(err.Error(), "Device or resource busy") {
+				// 引脚已经导出，忽略错误
+				return nil
+			}
+			return fmt.Errorf("failed to export GPIO pin %d: %w", res.pin, err)
 		}
-		return fmt.Errorf("failed to export GPIO pin %d: %w", res.pin, err)
 	}
+
 	return nil
 }
 
@@ -121,6 +126,11 @@ func (res *gpioRes) Cleanup(pins []int) {
 }
 
 func (res *gpioRes) Read(pin int) (int, error) {
+	//检查 GPIO 引脚是否已经导出
+	err := res.Export()
+	if err != nil {
+		return 0, err
+	}
 	filePath := fmt.Sprintf("/sys/class/gpio/gpio%d/value", pin)
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
