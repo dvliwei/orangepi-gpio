@@ -41,14 +41,20 @@ func (res *gpioRes) Export() error {
 			}
 			return fmt.Errorf("failed to export GPIO pin %d: %w", res.pin, err)
 		}
+		time.Sleep(3 * time.Second)
 	}
 
 	return nil
 }
 
 func (res *gpioRes) Unexport(pin int) error {
+	res.pin = pin
+	err := res.Export()
+	if err != nil {
+		return err
+	}
 	pinStr := strconv.Itoa(pin)
-	err := ioutil.WriteFile("/sys/class/gpio/unexport", []byte(pinStr), 0644)
+	err = ioutil.WriteFile("/sys/class/gpio/unexport", []byte(pinStr), 0644)
 	if err != nil {
 		return fmt.Errorf("failed to unexport GPIO pin %d: %w", pin, err)
 	}
@@ -56,10 +62,16 @@ func (res *gpioRes) Unexport(pin int) error {
 }
 
 func (res *gpioRes) SetOutDirection() error {
+	//先读取在设置
+	//重新设置停5秒
+	err := res.Export()
+	if err != nil {
+		return err
+	}
 	direction := "out"
 	pinStr := strconv.Itoa(res.pin)
 	path := fmt.Sprintf("/sys/class/gpio/gpio%s/direction", pinStr)
-	err := ioutil.WriteFile(path, []byte(direction), 0644)
+	err = ioutil.WriteFile(path, []byte(direction), 0644)
 	if err != nil {
 		return fmt.Errorf("failed to set direction of GPIO pin %d: %w", res.pin, err)
 	}
@@ -67,10 +79,14 @@ func (res *gpioRes) SetOutDirection() error {
 }
 
 func (res *gpioRes) SetInDirection() error {
+	err := res.Export()
+	if err != nil {
+		return err
+	}
 	direction := "in"
 	pinStr := strconv.Itoa(res.pin)
 	path := fmt.Sprintf("/sys/class/gpio/gpio%s/direction", pinStr)
-	err := ioutil.WriteFile(path, []byte(direction), 0644)
+	err = ioutil.WriteFile(path, []byte(direction), 0644)
 	if err != nil {
 		return fmt.Errorf("failed to set direction of GPIO pin %d: %w", res.pin, err)
 	}
@@ -88,13 +104,8 @@ func (res *gpioRes) SetValue(value int) error {
 	return nil
 }
 
-func (res *gpioRes) SetHigh() error {
-	err := res.Export()
-	if err != nil {
-		return err
-	}
-	time.Sleep(3 * time.Second)
-	err = res.SetOutDirection()
+func (res *gpioRes) SetOutHigh() error {
+	err := res.SetOutDirection()
 	if err != nil {
 		return err
 	}
@@ -102,17 +113,30 @@ func (res *gpioRes) SetHigh() error {
 	return res.SetValue(1)
 }
 
-func (res *gpioRes) SetLow() error {
-	err := res.Export()
-	if err != nil {
-		return err
-	}
-	time.Sleep(3 * time.Second)
-	err = res.SetOutDirection()
+func (res *gpioRes) SetOutLow() error {
+	err := res.SetOutDirection()
 	if err != nil {
 		return err
 	}
 	time.Sleep(5 * time.Second)
+	return res.SetValue(0)
+}
+
+func (res *gpioRes) SetInHigh() error {
+	err := res.SetInDirection()
+	if err != nil {
+		return err
+	}
+	time.Sleep(3 * time.Second)
+	return res.SetValue(1)
+}
+
+func (res *gpioRes) SetInLow() error {
+	err := res.SetInDirection()
+	if err != nil {
+		return err
+	}
+	time.Sleep(3 * time.Second)
 	return res.SetValue(0)
 }
 

@@ -29,9 +29,13 @@ type IsGpio interface {
 
 	SetValue(value int) error
 
-	SetHigh() error
+	SetOutHigh() error
 
-	SetLow() error
+	SetOutLow() error
+
+	SetInHigh() error
+
+	SetInLow() error
 
 	Cleanup(pins []int)
 

@@ -15,10 +15,14 @@ orangepi.gpio action
 
 	SetValue(value int) error
 
-	SetHigh() error
+	SetOutHigh() error //向外拉高
 
-	SetLow() error
+	SetOutLow() error //向外拉低
 
+   	SetInHigh() error //向内拉高
+
+	SetInLow() error //向内拉低
+   
 	Cleanup(pins []int)
 
 ````
